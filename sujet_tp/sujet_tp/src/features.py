@@ -7,6 +7,19 @@ import itertools
 
 from skimage.color import rgb2gray
 
+# Fonction pour convertir une liste d'images RGB en un espace colorimétrique différent
+def convert_color_space(images, target_space):
+    converted_images = []
+    for image in images:
+        if target_space == "HSV":
+            converted_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+        elif target_space == "Lab":
+            converted_image = cv2.cvtColor(image, cv2.COLOR_RGB2Lab)
+        else:
+            raise ValueError("Unsupported color space")
+        converted_images.append(converted_image)
+    return converted_images
+
 
 def compute_gray_histograms(images):
     """
