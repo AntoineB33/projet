@@ -12,6 +12,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D
 from tensorflow.keras.optimizers import Adam
 
+from tensorflow.keras.layers import Input
+
+eyyy = 1
 
 class StackedRBM(TransformerMixin):
     def __init__(
@@ -45,7 +48,6 @@ class StackedRBM(TransformerMixin):
         for rbm in self.rbms:
             input_data = rbm.transform(input_data)
         return input_data
-
 
 class CNNClustering(BaseEstimator, TransformerMixin):
     def __init__(
