@@ -1,0 +1,11 @@
+features 
+
+selection des 1-2 images pou tous les labels afin de tester notre code à très petite échelle
+
+coder pour toutes les features et méthodes
+
+run avec plus d'images prendre un lot de 10-20 images
+
+test clustering avec leur label et vérif clustering pur (silouhette)
+
+echelle normale
