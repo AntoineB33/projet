@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from sklearn import datasets
 
-from features import *
+from sujet_tp.sujet_tp.src.features import *
 from clustering import *
 from utils import *
 from constant import PATH_OUTPUT, MODEL_CLUSTERING

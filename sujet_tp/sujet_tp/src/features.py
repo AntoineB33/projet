@@ -5,6 +5,7 @@ from skimage.feature import hog
 from skimage import transform
 import itertools
 
+from skimage.color import rgb2gray
 
 
 def compute_gray_histograms(images):
@@ -21,38 +22,48 @@ def compute_gray_histograms(images):
         descriptors.append(hist.flatten())
     return descriptors
 
+
 def compute_hog_descriptors(images):
     """
     Calcule les descripteurs HOG pour les images en niveaux de gris.
     Input : images (array) : tableau numpy des images
     Output : descriptors (list) : liste des descripteurs HOG
     """
+    # descriptors = []
+    # for image in images:
+    #     fd, hog_image = hog(image, orientations=8, pixels_per_cell=(8, 8),
+    #                 cells_per_block=(1, 1), visualize=True)
+    #     descriptors.append(fd)
+
+    # return descriptors
     descriptors = []
     for image in images:
-        fd, hog_image = hog(image, orientations=8, pixels_per_cell=(8, 8),
-                    cells_per_block=(1, 1), visualize=True)
+        # Vérifie si l'image est en couleur (vérifie si elle a 3 dimensions)
+        if image.ndim == 3:
+            image_gray = rgb2gray(image)
+        else:
+            image_gray = image
+
+        # Calcul du HOG sans spécifier channel_axis pour les images en niveaux de gris
+        fd, hog_image = hog(image_gray, orientations=8, pixels_per_cell=(8, 8),
+                            cells_per_block=(1, 1), visualize=True)
+        # # Calcul du HOG
+        # fd, hog_image = hog(
+        #     image_gray,
+        #     orientations=8,
+        #     pixels_per_cell=(8, 8),
+        #     cells_per_block=(1, 1),
+        #     visualize=True,
+        #     channel_axis=-1,
+        # )
         descriptors.append(fd)
-        
-        """fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
-        
-        ax1.axis('off')
-        ax1.imshow(image, cmap=plt.cm.gray)
-        ax1.set_title('Input image')
-        
-        # Rescale histogram for better display
-        hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
-        
-        ax2.axis('off')
-        ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
-        ax2.set_title('Histogram of Oriented Gradients')
-        plt.show()"""
-    
     return descriptors
+
 
 def compute_sift_descriptors(images):
     """
     Computes SIFT descriptors for a list of images.
-    
+
     :param images: List of images in numpy array format.
     :return: List of SIFT descriptors for each image.
     """
@@ -66,15 +77,15 @@ def compute_sift_descriptors(images):
         descriptors.append(descriptor)
     return descriptors
 
- 
+
 def compute_sift_descriptors2(images):
-    img = cv.imread('home.jpg')
-    gray= cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-     
+    img = cv.imread("home.jpg")
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
     sift = cv.SIFT_create()
-    kp = sift.detect(gray,None)
-     
-    img=cv.drawKeypoints(gray,kp,img)
-     
-    cv.imwrite('sift_keypoints.jpg',img)
+    kp = sift.detect(gray, None)
+
+    img = cv.drawKeypoints(gray, kp, img)
+
+    cv.imwrite("sift_keypoints.jpg", img)
     return descriptors
