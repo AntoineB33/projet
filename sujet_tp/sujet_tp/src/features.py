@@ -7,6 +7,14 @@ import itertools
 
 from skimage.color import rgb2gray
 
+# SIFT
+from sklearn.feature_extraction.image import extract_patches_2d
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from skimage.feature import SIFT
+import numpy as np
+
+
 # Fonction pour convertir une liste d'images RGB en un espace colorimétrique différent
 def convert_color_space(images, target_space):
     converted_images = []
@@ -58,8 +66,13 @@ def compute_hog_descriptors(images):
             image_gray = image
 
         # Calcul du HOG sans spécifier channel_axis pour les images en niveaux de gris
-        fd, hog_image = hog(image_gray, orientations=8, pixels_per_cell=(8, 8),
-                            cells_per_block=(1, 1), visualize=True)
+        fd, hog_image = hog(
+            image_gray,
+            orientations=8,
+            pixels_per_cell=(8, 8),
+            cells_per_block=(1, 1),
+            visualize=True,
+        )
         # # Calcul du HOG
         # fd, hog_image = hog(
         #     image_gray,
@@ -71,6 +84,54 @@ def compute_hog_descriptors(images):
         # )
         descriptors.append(fd)
     return descriptors
+
+
+def convert_to_grayscale(image):
+    """Converts an RGB image to grayscale."""
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+from skimage.color import rgb2gray
+from skimage.feature import SIFT
+import numpy as np
+
+# Étape 1: Extraction des caractéristiques SIFT avec conversion en niveaux de gris pour images RGB
+def extract_sift_features(images):
+    sift_descriptors = []
+    sift = SIFT()
+    for image in images:
+        # Convertir l'image RGB en niveaux de gris
+        gray_image = rgb2gray(image)
+        sift.detect_and_extract(gray_image)
+        descriptors = sift.descriptors
+        sift_descriptors.append(descriptors)
+    return sift_descriptors
+
+# # Étape 1: Extraction des caractéristiques SIFT
+# def extract_sift_features(images):
+#     sift_descriptors = []
+#     sift = SIFT()
+#     for image in images:
+#         gray_image = convert_to_grayscale(image)  # Convert image to grayscale
+#         keypoints, descriptors = sift.detectAndCompute(
+#             gray_image, None
+#         )  # Adjusted to use detectAndCompute
+#         sift_descriptors.append(descriptors)
+#     return sift_descriptors
+
+
+# Étape 2: Aggregation des descripteurs SIFT (exemple simple avec K-Means pour créer un "Bag of Features")
+def create_bag_of_features(sift_descriptors, n_clusters=20):
+    all_descriptors = np.vstack(sift_descriptors)
+    kmeans = KMeans(n_clusters=n_clusters)
+    kmeans.fit(all_descriptors)
+    features = np.array(
+        [kmeans.predict(descriptors) for descriptors in sift_descriptors]
+    )
+    # Création d'un histogramme de caractéristiques pour chaque image
+    histograms = np.array(
+        [np.bincount(feature, minlength=n_clusters) for feature in features]
+    )
+    return histograms
 
 
 def compute_sift_descriptors(images):
