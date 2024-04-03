@@ -21,7 +21,9 @@ def colorize_cluster(cluster_data, selected_cluster):
 @st.cache_data
 def plot_metric(df_metric):
     # TODO
-    #st.plotly_chart(fig1)
+    # fig1 = colorize_cluster(df, selected_cluster)
+    fig = px.bar(df_metric, x='Descripteur', y='Score AMI', color='Descripteur', barmode='group')
+    st.plotly_chart(fig1)
 
         
 # Chargement des données du clustering
@@ -57,6 +59,7 @@ with tab1:
     filtered_data = df[df['cluster'] == selected_cluster]
     # Création d'un graph 3D des clusters
     # TODO : à remplir
+    fig1 = colorize_cluster(df, selected_cluster)
     st.plotly_chart(fig)
 
 # Onglet numéro 2
