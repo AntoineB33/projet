@@ -136,6 +136,7 @@ def cluster_images_with_stacked_rbm(X):
 # Supposons que X soit votre matrice de données d'images prétraitées.
 # Vous pouvez appeler la fonction cluster_images_with_stacked_rbm(X) pour effectuer le clustering.
 
+from sklearn.metrics import silhouette_score
 
 def show_metric(
     labels_true,
@@ -167,5 +168,8 @@ def show_metric(
     if bool_show:
         print(f"########## Métrique descripteur : {name_descriptor}")
         print(f"Adjusted Mutual Information: {ami}")
+        # Calcul du Silhouette Score
+        score = silhouette_score(descriptors, labels_pred)
+        print("Silhouette Score:", score)
     if bool_return:
         return {"ami": ami, "name_model": name_model}
