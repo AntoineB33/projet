@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.manifold import TSNE
 import numpy as np
 
-def conversion_3d(X, n_components=3,perplexity=50,random_state=42, early_exaggeration=10,n_iter=3000):
+def conversion_3d(X, n_components=3,perplexity=10,random_state=42, early_exaggeration=10,n_iter=3000):
     """
     Conversion des vecteurs de N dimensions vers une dimension précise (n_components) pour la visualisation
     Input : X (array-like) : données à convertir en 3D

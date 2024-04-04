@@ -163,13 +163,13 @@ def show_metric(
     """
 
     ami = adjusted_mutual_info_score(labels_true, labels_pred)
+    silouhette = silhouette_score(descriptors, labels_pred)
 
     # Affichons les résultats
     if bool_show:
         print(f"########## Métrique descripteur : {name_descriptor}")
         print(f"Adjusted Mutual Information: {ami}")
         # Calcul du Silhouette Score
-        score = silhouette_score(descriptors, labels_pred)
-        print("Silhouette Score:", score)
+        print("Silhouette Score:", silouhette)
     if bool_return:
-        return {"ami": ami, "name_model": name_model}
+        return {"ami": ami, "silouhette": silouhette, "name_model": name_model}
