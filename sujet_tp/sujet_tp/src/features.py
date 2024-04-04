@@ -124,9 +124,7 @@ def create_bag_of_features(sift_descriptors, n_clusters=20):
     all_descriptors = np.vstack(sift_descriptors)
     kmeans = KMeans(n_clusters=n_clusters)
     kmeans.fit(all_descriptors)
-    features = np.array(
-        [kmeans.predict(descriptors) for descriptors in sift_descriptors]
-    )
+    features = [kmeans.predict(descriptors) for descriptors in sift_descriptors]
     # Création d'un histogramme de caractéristiques pour chaque image
     histograms = np.array(
         [np.bincount(feature, minlength=n_clusters) for feature in features]
