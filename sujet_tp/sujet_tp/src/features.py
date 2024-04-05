@@ -15,6 +15,24 @@ from skimage.feature import SIFT
 import numpy as np
 
 
+
+
+import os
+import cv2
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import skimage as skimage
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from skimage.feature import hog
+from sklearn.metrics import accuracy_score, silhouette_score, adjusted_mutual_info_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
+from sklearn.neural_network import BernoulliRBM
+
+
 # Fonction pour convertir une liste d'images RGB en un espace colorimétrique différent
 def convert_color_space(images, target_space):
     converted_images = []
@@ -50,13 +68,6 @@ def compute_hog_descriptors(images):
     Input : images (array) : tableau numpy des images
     Output : descriptors (list) : liste des descripteurs HOG
     """
-    # descriptors = []
-    # for image in images:
-    #     fd, hog_image = hog(image, orientations=8, pixels_per_cell=(8, 8),
-    #                 cells_per_block=(1, 1), visualize=True)
-    #     descriptors.append(fd)
-
-    # return descriptors
     descriptors = []
     for image in images:
         # Vérifie si l'image est en couleur (vérifie si elle a 3 dimensions)
@@ -73,18 +84,15 @@ def compute_hog_descriptors(images):
             cells_per_block=(1, 1),
             visualize=True,
         )
-        # # Calcul du HOG
-        # fd, hog_image = hog(
-        #     image_gray,
-        #     orientations=8,
-        #     pixels_per_cell=(8, 8),
-        #     cells_per_block=(1, 1),
-        #     visualize=True,
-        #     channel_axis=-1,
-        # )
         descriptors.append(fd)
     return descriptors
 
+def extract_hog_features(images):
+    features = []
+    for image in images:
+        feature = hog(skimage.color.rgb2gray(image.reshape((image_height, image_width, 3))))  # Extract HOG features
+        features.append(feature)
+    return np.array(features)
 
 def convert_to_grayscale(image):
     """Converts an RGB image to grayscale."""

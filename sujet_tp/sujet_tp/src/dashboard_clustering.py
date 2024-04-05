@@ -125,7 +125,7 @@ with tab1:
         "Sélectionner un descripteur", descsTitle
     )
     model= st.sidebar.selectbox("Sélectionner un modèle", modeles_title)
-    df = df_list[descsTitle0.index(descriptor0) * len(descriptor0) + descsTitle.index(descriptor) * len(descriptor) + modeles_title.index(model)]
+    df = df_list[descsTitle0.index(descriptor0) * len(descs) * len(modeles) + descsTitle.index(descriptor) * len(modeles)+ modeles_title.index(model)]
     # Ajouter un sélecteur pour les clusters
     selected_cluster = st.sidebar.selectbox("Sélectionner un Cluster", range(20))
     # Filtrer les données en fonction du cluster sélectionné
