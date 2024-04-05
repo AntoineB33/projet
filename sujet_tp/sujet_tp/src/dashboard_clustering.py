@@ -83,12 +83,15 @@ def display_image_from_cluster(df, cluster_indices, images):
 # Chargement des données du clustering
 # descriptors0 = ["RGB", "HSV"]
 # descriptors = ["HISTOGRAM", "HOG", "SIFT"]
-# modeles = ["Stacked RBM"]
-# df = []
-# for d0 in descriptors0:
-#     for d in descriptors:
-#         for m in modeles:
-#             df.append(pd.read_excel(f"output/save_clustering_{d0}_{d}_{m}_kmeans.xlsx"))
+modeles_title = ["Stacked RBM Kmeans","XGBoost"]
+modeles = ["rbm_Kmeans", "XGBoost"]
+descs0 = ["", "HSV"]
+descs = ["hist", "hog", "sift"]
+df_list = []
+for d0 in descs0:
+    for d in descs:
+        for m in modeles:
+            df_list.append(pd.read_excel(f"output/save_clustering_{d0}_{d}_{m}.xlsx"))
 df_hsv_hist_rbm = pd.read_excel("output/save_clustering_hsv_hist_rbm_kmeans.xlsx")
 # df_hsv_hog_rbm = pd.read_excel("output/save_clustering_hsv_hog_rbm_kmeans.xlsx")
 # df_hsv_sift_rbm = pd.read_excel("output/save_clustering_hsv_sift_rbm_kmeans.xlsx")
@@ -105,31 +108,22 @@ if "Unnamed: 0" in df_metric.columns:
 # Création de deux onglets
 tab1, tab2 = st.tabs(["Analyse par descripteur", "Analyse global"])
 
+
+descsTitle0 = ["RGB", "HSV"]
+descsTitle = ["HISTOGRAM", "HOG", "SIFT", "aucun"]
+
 # Onglet numéro 1
 with tab1:
 
     st.write("## Résultat de Clustering des données DIGITS")
     st.sidebar.write("####  Veuillez sélectionner les clusters à analyser")
     # Sélection des descripteurs
-    descriptor0 = st.sidebar.selectbox("Sélectionner un descripteur", ["RGB", "HSV"])
+    descriptor0 = st.sidebar.selectbox("Sélectionner un descripteur", descsTitle0)
     descriptor = st.sidebar.selectbox(
-        "Sélectionner un descripteur", ["HISTOGRAM", "HOG", "SIFT"]
+        "Sélectionner un descripteur", descsTitle
     )
-    model= st.sidebar.selectbox("Sélectionner un modèle", ["Stacked RBM","Kmeans","XGBoost"])
-    if descriptor0 == "HSV":
-        if descriptor == "HISTOGRAM":
-            df = df_hsv_hist_rbm
-        elif descriptor == "HOG":
-            df = df_hsv_hist_rbm
-        else:
-            df = df_hsv_hist_rbm
-    else:
-        if descriptor == "HISTOGRAM":
-            df = df_hsv_hist_rbm
-        elif descriptor == "HOG":
-            df = df_hsv_hist_rbm
-        else:
-            df = df_hsv_hist_rbm
+    model= st.sidebar.selectbox("Sélectionner un modèle", modeles_title)
+    df = df_list[descsTitle0.index(descriptor0) * len(descriptor0) + descsTitle.index(descriptor) * len(descriptor) + modeles_title.index(model)]
     # Ajouter un sélecteur pour les clusters
     selected_cluster = st.sidebar.selectbox("Sélectionner un Cluster", range(20))
     # Filtrer les données en fonction du cluster sélectionné

@@ -1,31 +1,151 @@
 from sklearn.preprocessing import StandardScaler
 import os
 import pandas as pd
-from sklearn import datasets
 
 from sujet_tp.sujet_tp.src.features import *
 from clustering import *
 from utils import *
 from constant import PATH_OUTPUT, MODEL_CLUSTERING
 
+from sklearn.preprocessing import StandardScaler
+import os
+import pandas as pd
+from sklearn import datasets
+import plotly as plt
+import plotly.express as px
+from features import *
+from clustering import *
+from utils import *
+from constant import  PATH_OUTPUT, MODEL_CLUSTERING, PATH_DATA, PATH_DATA_ALL
 
+from sklearn.cluster import KMeans
+
+from sklearn.pipeline import Pipeline
+
+from skimage.transform import resize
+
+from sklearn.preprocessing import StandardScaler
+from images import load_images_from_folder
 
 def pipeline():
+
+    # Example usage:
+    folder_path = PATH_DATA_ALL + "/code_test"
+    images, labels_true, folder_names = load_images_from_folder(folder_path)
+    taille = len(images)
+    nombre_de_canaux = 3
    
-    digits = datasets.load_digits()
-    labels_true =digits.target
-    images = digits.images
     print("\n\n ##### Extraction de Features ######")
+    
+
+    images_to_use = [images, convert_color_space(images, "HSV")]
+    descs0 = ["", "HSV"]
+    descs = ["hist", "hog", "sift"]
+    list_dict=[]
+
+    for d0 in range(len(descs0)):
+        descriptors_hog = compute_hog_descriptors(images_to_use[d0])
+        descriptors_hist = compute_gray_histograms(images_to_use[d0])
+        sift_descriptors = extract_sift_features(images_to_use[d0])
+        descriptors_sift = create_bag_of_features(sift_descriptors, n_clusters=20)
+        descriptors = [descriptors_hist, descriptors_hog, descriptors_sift]
+        for d in range(len(descs)):
+
+            # Présumons que `images` est votre liste d'images prétraitées et aplatie en vecteurs
+
+            # Initialisation de la classe StackedRBM
+            stacked_rbm = StackedRBM(n_components_list=[256, 128], n_iter=10, learning_rate=0.01, batch_size=10)
+
+            # Ajustement des RBMs sur les données d'image
+            stacked_rbm.fit(descriptors[d])
+
+            # Transformation des images en nouvelles représentations avec les RBMs entraînés
+            transformed_images = stacked_rbm.transform(descriptors[d])
+
+            # Normalisation des caractéristiques pour améliorer les performances de K-Means
+            scaler = StandardScaler()
+            transformed_images_scaled = conversion_3d(transformed_images)
+
+            # Clustering avec K-Means
+            kmeans = KMeans(n_clusters=20, random_state=42)
+            clusters = kmeans.fit_predict(transformed_images_scaled)
+            
+            
+            metric = show_metric(labels_true, clusters, transformed_images_scaled, bool_show=True, name_descriptor="HSV et HISTOGRAM", name_model = "Stacked RBM", bool_return=True)
+            list_dict.append(metric)
+            
+            
+            scaler = StandardScaler()
+            descriptors_norm = scaler.fit_transform(descriptors[d])
+            
+            x_3d_norm = conversion_3d(descriptors_norm)
+            
+            df = create_df_to_export(x_3d_norm, labels_true, kmeans.labels_)
+
+            # sauvegarde des données
+            df.to_excel(PATH_OUTPUT+f"/save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
+            print(f"save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
+            
+    df_metric = pd.DataFrame(list_dict)
+    df_metric.to_excel(PATH_OUTPUT+"/save_metric.xlsx")
+
     print("- calcul features hog...")
     # TODO
     print("- calcul features Histogram...")
     # TODO
+    print("- calcul features sift...")
+    # TODO
+    print("- calcul features hsv...")
+    # TODO
+
+
     print("\n\n ##### Clustering ######")
-    number_cluster = 10
-    print("- calcul kmeans avec features HOG ...")
+    number_cluster = 20
+
+    print("-- Mean Shift --")
     # TODO
-    print("- calcul kmeans avec features Histogram...")
+    print("- calcul Mean Shift avec features HOG ...")
     # TODO
+    print("- calcul Mean Shift avec features Histogram...")
+    # TODO
+    print("- calcul Mean Shift avec features SIFT...")
+    # TODO
+    print("- calcul Mean Shift avec features HSV ...")
+    # TODO
+
+    print("-- Stacked RMB (Restricted Boltzmann Machine) --")
+    # TODO
+    print("- calcul Stacked RMB avec features HOG ...")
+    # TODO
+    print("- calcul Stacked RMB avec features Histogram...")
+    # TODO
+    print("- calcul Stacked RMB avec features SIFT ...")
+    # TODO
+    print("- calcul Stacked RMB avec features HSV ...")
+    # TODO
+
+    print("-- XGBoost (Extrem Gradien boosting) --")
+    # TODO
+    print("- calcul XGBoost avec features HOG ...")
+    # TODO
+    print("- calcul XGBoost avec features Histogram...")
+    # TODO
+    print("- calcul XGBoost avec features SIFT ...")
+    # TODO
+    print("- calcul XGBoost avec features HSV ...")
+    # TODO
+
+    print("-- RCA (Random Clustering Asign) --")
+    # TODO
+    print("- calcul RCA avec features HOG ...")
+    # TODO
+    print("- calcul RCA avec features Histogram...")
+    # TODO
+    print("- calcul RCA avec features SIFT ...")
+    # TODO
+    print("- calcul RCA avec features HSV ...")
+    # TODO
+    
 
     print("\n\n ##### Résultat ######")
     metric_hist = show_metric(labels_true, kmeans_hist.labels_, descriptors_hist, bool_show=True, name_descriptor="HISTOGRAM", bool_return=True)
