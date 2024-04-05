@@ -7,7 +7,8 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import plotly.express as px
 import cv2
-
+from images import load_images_from_folder
+from constant import  PATH_OUTPUT, MODEL_CLUSTERING, PATH_DATA, PATH_DATA_ALL
 
 @st.cache_data
 def colorize_cluster(cluster_data, selected_cluster):
@@ -70,7 +71,24 @@ def plot_metric(df_metric):
     # st.plotly_chart(fig2)
 
 
+# Étape 3: Sélectionner et afficher une image d'un cluster choisi
+def display_image_from_cluster(df, cluster_indices, images):
+    if not cluster_indices.empty:
+        # Sélectionnez la première image du cluster pour l'affichage, par exemple
+        img = images[cluster_indices[0]]
+        st.image(img, caption=f"Image from selected cluster.")
+    else:
+        st.write(f"No images found for selected cluster.")
+
 # Chargement des données du clustering
+# descriptors0 = ["RGB", "HSV"]
+# descriptors = ["HISTOGRAM", "HOG", "SIFT"]
+# modeles = ["Stacked RBM"]
+# df = []
+# for d0 in descriptors0:
+#     for d in descriptors:
+#         for m in modeles:
+#             df.append(pd.read_excel(f"output/save_clustering_{d0}_{d}_{m}_kmeans.xlsx"))
 df_hsv_hist_rbm = pd.read_excel("output/save_clustering_hsv_hist_rbm_kmeans.xlsx")
 # df_hsv_hog_rbm = pd.read_excel("output/save_clustering_hsv_hog_rbm_kmeans.xlsx")
 # df_hsv_sift_rbm = pd.read_excel("output/save_clustering_hsv_sift_rbm_kmeans.xlsx")
@@ -78,6 +96,8 @@ df_hsv_hist_rbm = pd.read_excel("output/save_clustering_hsv_hist_rbm_kmeans.xlsx
 # df_hog_rbm = pd.read_excel("output/save_clustering_hog_rbm_kmeans.xlsx")
 # df_sift_rbm = pd.read_excel("output/save_clustering_sift_rbm_kmeans.xlsx")
 df_metric = pd.read_excel("output/save_metric.xlsx")
+folder_path = PATH_DATA_ALL + "/code_test"
+images, labels_true, folder_names = load_images_from_folder(folder_path)
 
 if "Unnamed: 0" in df_metric.columns:
     df_metric.drop(columns="Unnamed: 0", inplace=True)
@@ -95,6 +115,7 @@ with tab1:
     descriptor = st.sidebar.selectbox(
         "Sélectionner un descripteur", ["HISTOGRAM", "HOG", "SIFT"]
     )
+    model= st.sidebar.selectbox("Sélectionner un modèle", ["Stacked RBM","Kmeans","XGBoost"])
     if descriptor0 == "HSV":
         if descriptor == "HISTOGRAM":
             df = df_hsv_hist_rbm
@@ -122,6 +143,7 @@ with tab1:
     # TODO : à remplir
     fig1 = colorize_cluster(df, selected_cluster)
     st.plotly_chart(fig1)
+    display_image_from_cluster(df, cluster_indices, images)
 
 # Onglet numéro 2
 with tab2:
