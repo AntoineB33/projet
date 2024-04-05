@@ -152,3 +152,4 @@ with tab2:
     plot_metric(df_metric)
     st.write("## Métriques ")
     # TODO :à remplir par un affichage d'un tableau
+    st.dataframe(df_metric)
