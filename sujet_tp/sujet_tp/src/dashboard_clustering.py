@@ -55,20 +55,6 @@ def plot_metric(df_metric):
     # Affichage des graphiques
     for fig in figures:
         st.plotly_chart(fig)
-    # TODO
-    # fig1 = colorize_cluster(df, selected_cluster)
-    # fig1 = px.bar(
-    #     df_metric, x="Descripteur", y="ami", color="Descripteur", barmode="group"
-    # )
-    # fig2 = px.bar(
-    #     df_metric,
-    #     x="name_model",
-    #     y="silhouette",
-    #     color="Descripteur",
-    #     barmode="group",
-    # )
-    # st.plotly_chart(fig1)
-    # st.plotly_chart(fig2)
 
 
 # Étape 3: Sélectionner et afficher une image d'un cluster choisi
@@ -96,12 +82,6 @@ for d0 in descs0:
     for d in descs:
         for m in modeles:
             df_list.append(pd.read_excel(f"output/save_clustering_{d0}_{d}_{m}.xlsx"))
-df_hsv_hist_rbm = pd.read_excel("output/save_clustering_hsv_hist_rbm_kmeans.xlsx")
-# df_hsv_hog_rbm = pd.read_excel("output/save_clustering_hsv_hog_rbm_kmeans.xlsx")
-# df_hsv_sift_rbm = pd.read_excel("output/save_clustering_hsv_sift_rbm_kmeans.xlsx")
-# df_hist_rbm = pd.read_excel("output/save_clustering_hist_rbm_kmeans.xlsx")
-# df_hog_rbm = pd.read_excel("output/save_clustering_hog_rbm_kmeans.xlsx")
-# df_sift_rbm = pd.read_excel("output/save_clustering_sift_rbm_kmeans.xlsx")
 df_metric = pd.read_excel("output/save_metric.xlsx")
 folder_path = PATH_DATA_ALL + "/code_test"
 images, labels_true, folder_names = load_images_from_folder(folder_path)
