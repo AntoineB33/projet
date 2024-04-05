@@ -83,8 +83,12 @@ def display_image_from_cluster(df, cluster_indices, images):
 # Chargement des données du clustering
 # descriptors0 = ["RGB", "HSV"]
 # descriptors = ["HISTOGRAM", "HOG", "SIFT"]
+descsTitle0 = ["RGB", "HSV"]
+descsTitle = ["HISTOGRAM", "HOG", "SIFT"]
 modeles_title = ["Stacked RBM Kmeans","XGBoost"]
 modeles = ["rbm_Kmeans", "XGBoost"]
+modeles_title = ["Stacked RBM Kmeans"]
+modeles = ["rbm_Kmeans"]
 descs0 = ["", "HSV"]
 descs = ["hist", "hog", "sift"]
 df_list = []
@@ -109,8 +113,6 @@ if "Unnamed: 0" in df_metric.columns:
 tab1, tab2 = st.tabs(["Analyse par descripteur", "Analyse global"])
 
 
-descsTitle0 = ["RGB", "HSV"]
-descsTitle = ["HISTOGRAM", "HOG", "SIFT", "aucun"]
 
 # Onglet numéro 1
 with tab1:

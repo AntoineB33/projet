@@ -27,6 +27,39 @@ from skimage.transform import resize
 from sklearn.preprocessing import StandardScaler
 from images import load_images_from_folder
 
+import os
+import cv2
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import skimage as skimage
+%matplotlib inline
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from skimage.feature import hog
+from sklearn.metrics import accuracy_score, silhouette_score, adjusted_mutual_info_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
+from sklearn.neural_network import BernoulliRBM
+
+
+params = {
+    'objective': 'multi:softmax', 
+    'num_class': len(np.unique(labels_encoded)),
+    'eta': 0.1,  # Decrease learning rate [0.01-0.3] Lower values make the model more robust but require more boosting rounds.
+    'max_depth': 8,  # Adjust max depth of trees [3-10] Higher values allow the model to capture more complex interactions in the data but can lead to overfitting.
+    'num_boost_round': 100,  # Increase number of boosting rounds [50-500]
+    'subsample': 0.75,  # Reduce subsample ratio [0.5-1] Lower values introduce more randomness and can prevent overfitting.
+    'colsample_bytree': 0.85,  # Reduce column subsample ratio [0.5-1] Lower values introduce more randomness in feature selection.
+    'lambda': 10,  # L2 regularization term [0-10+] Higher values add more regularization to prevent overfitting.
+    'alpha': 10  # L1 regularization term [0-10+] Higher values add more regularization to prevent overfitting.
+}
+
+descsTitle0 = ["RGB", "HSV"]
+descsTitle = ["HISTOGRAM", "HOG", "SIFT"]
+modeles_title = ["Stacked RBM Kmeans","XGBoost"]
+
 def pipeline():
 
     # Example usage:
@@ -42,6 +75,9 @@ def pipeline():
     descs0 = ["", "HSV"]
     descs = ["hist", "hog", "sift"]
     list_dict=[]
+    
+    label_encoder = LabelEncoder()
+    labels_encoded = label_encoder.fit_transform(labels_true)
 
     for d0 in range(len(descs0)):
         descriptors_hog = compute_hog_descriptors(images_to_use[d0])
@@ -71,7 +107,7 @@ def pipeline():
             clusters = kmeans.fit_predict(transformed_images_scaled)
             
             
-            metric = show_metric(labels_true, clusters, transformed_images_scaled, bool_show=True, name_descriptor="HSV et HISTOGRAM", name_model = "Stacked RBM", bool_return=True)
+            metric = show_metric(labels_true, clusters, transformed_images_scaled, bool_show=True, name_descriptor=f"{descsTitle0[d0]} et {descsTitle[d]}", name_model = "Stacked RBM et Kmeans", bool_return=True)
             list_dict.append(metric)
             
             
@@ -86,8 +122,39 @@ def pipeline():
             df.to_excel(PATH_OUTPUT+f"/save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
             print(f"save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
             
+            
+            
+            X_train, X_test, y_train, y_test = train_test_split(descriptors[d], labels_encoded, test_size=0.2, random_state=42)
+            dtrain = xgb.DMatrix(X_train, label=y_train)
+            dtest = xgb.DMatrix(X_train, label=y_test)
+            bst = xgb.train(params, dtrain, num_boost_round=params['num_boost_round'])
+            preds = bst.predict(dtest)
+            metric = show_metric(labels_true, clusters, transformed_images_scaled, bool_show=True, name_descriptor=f"{descsTitle0[d0]} et {descsTitle[d]}", name_model = "XGBoost", bool_return=True)
+            list_dict.append(metric)
+            
+            
+            scaler = StandardScaler()
+            descriptors_norm = scaler.fit_transform(descriptors[d])
+            
+            x_3d_norm = conversion_3d(descriptors_norm)
+            
+            df = create_df_to_export(x_3d_norm, labels_true, preds)
+
+            # sauvegarde des données
+            df.to_excel(PATH_OUTPUT+f"/save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
+            print(f"save_clustering_{descs0[d0]}_{descs[d]}_rbm_kmeans.xlsx")
+            
+            
+            
+            
+            bandwidth = estimate_bandwidth(X_train_normalized, quantile=0.06)
+            mean_shift = MeanShift(bandwidth=bandwidth,cluster_all=True)
+            mean_shift.fit(X_train_normalized)
+            
     df_metric = pd.DataFrame(list_dict)
     df_metric.to_excel(PATH_OUTPUT+"/save_metric.xlsx")
+    
+    
 
     print("- calcul features hog...")
     # TODO
@@ -147,39 +214,39 @@ def pipeline():
     # TODO
     
 
-    print("\n\n ##### Résultat ######")
-    metric_hist = show_metric(labels_true, kmeans_hist.labels_, descriptors_hist, bool_show=True, name_descriptor="HISTOGRAM", bool_return=True)
-    metric_hog = show_metric(labels_true, kmeans_hog.labels_, descriptors_hog,bool_show=True, name_descriptor="HOG", bool_return=True)
+    # print("\n\n ##### Résultat ######")
+    # metric_hist = show_metric(labels_true, kmeans_hist.labels_, descriptors_hist, bool_show=True, name_descriptor="HISTOGRAM", bool_return=True)
+    # metric_hog = show_metric(labels_true, kmeans_hog.labels_, descriptors_hog,bool_show=True, name_descriptor="HOG", bool_return=True)
 
-    print("- export des données vers le dashboard")
-    # conversion des données vers le format du dashboard
-    list_dict = [metric_hist, metric_hog]
-    df_metric = pd.DataFrame(list_dict)
+    # print("- export des données vers le dashboard")
+    # # conversion des données vers le format du dashboard
+    # list_dict = [metric_hist, metric_hog]
+    # df_metric = pd.DataFrame(list_dict)
     
-    # Normalisation des données
-    scaler = StandardScaler()
-    descriptors_hist_norm = scaler.fit_transform(descriptors_hist)
-    descriptors_hog_norm = scaler.fit_transform(descriptors_hog)
+    # # Normalisation des données
+    # scaler = StandardScaler()
+    # descriptors_hist_norm = scaler.fit_transform(descriptors_hist)
+    # descriptors_hog_norm = scaler.fit_transform(descriptors_hog)
 
-    #conversion vers un format 3D pour la visualisation
-    print("- conversion vers le format 3D ...")
-    x_3d_hist = conversion_3d(descriptors_hist_norm)
-    x_3d_hog = conversion_3d(descriptors_hog_norm)
+    # #conversion vers un format 3D pour la visualisation
+    # print("- conversion vers le format 3D ...")
+    # x_3d_hist = conversion_3d(descriptors_hist_norm)
+    # x_3d_hog = conversion_3d(descriptors_hog_norm)
 
-    # création des dataframe pour la sauvegarde des données pour la visualisation
-    df_hist = create_df_to_export(x_3d_hist, labels_true, kmeans_hist.labels_)
-    df_hog = create_df_to_export(x_3d_hog, labels_true, kmeans_hog.labels_)
+    # # création des dataframe pour la sauvegarde des données pour la visualisation
+    # df_hist = create_df_to_export(x_3d_hist, labels_true, kmeans_hist.labels_)
+    # df_hog = create_df_to_export(x_3d_hog, labels_true, kmeans_hog.labels_)
 
-    # Vérifie si le dossier existe déjà
-    if not os.path.exists(PATH_OUTPUT):
-        # Crée le dossier
-        os.makedirs(PATH_OUTPUT)
+    # # Vérifie si le dossier existe déjà
+    # if not os.path.exists(PATH_OUTPUT):
+    #     # Crée le dossier
+    #     os.makedirs(PATH_OUTPUT)
 
-    # sauvegarde des données
-    print("- enregistrement des fichiers ...")
-    df_hist.to_excel(PATH_OUTPUT+"/save_clustering_hist_kmeans.xlsx")
-    df_hog.to_excel(PATH_OUTPUT+"/save_clustering_hog_kmeans.xlsx")
-    df_metric.to_excel(PATH_OUTPUT+"/save_metric.xlsx")
+    # # sauvegarde des données
+    # print("- enregistrement des fichiers ...")
+    # df_hist.to_excel(PATH_OUTPUT+"/save_clustering_hist_kmeans.xlsx")
+    # df_hog.to_excel(PATH_OUTPUT+"/save_clustering_hog_kmeans.xlsx")
+    # df_metric.to_excel(PATH_OUTPUT+"/save_metric.xlsx")
     print("Fin. \n\n Pour avoir la visualisation dashboard, veuillez lancer la commande : streamlit run dashboard_clustering.py")
 
 

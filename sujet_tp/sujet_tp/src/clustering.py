@@ -172,4 +172,4 @@ def show_metric(
         # Calcul du Silhouette Score
         print("Silhouette Score:", silouhette)
     if bool_return:
-        return {"ami": ami, "silouhette": silouhette, "descriptor": name_descriptor, "name_model": name_model}
+        return {"ami": ami, "silhouette": silouhette, "descriptor": name_descriptor, "name_model": name_model}
