@@ -8,7 +8,14 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import cv2
 from images import load_images_from_folder
-from constant import  PATH_OUTPUT, MODEL_CLUSTERING, PATH_DATA, PATH_DATA_ALL
+import argparse
+
+# Parse command line arguments for data path
+parser = argparse.ArgumentParser(description='Run a clustering dashboard')
+parser.add_argument('--path_data', type=str, help='Path to the dataset')
+parser.add_argument("--path_images", type=str, required=True, help="Path to the images folder")
+folder_path = parser.parse_args().path_data
+images_path = parser.parse_args().path_images
 
 @st.cache_data
 def colorize_cluster(cluster_data, selected_cluster):
@@ -81,10 +88,9 @@ df_list = []
 for d0 in descs0:
     for d in descs:
         for m in modeles:
-            df_list.append(pd.read_excel(f"output/save_clustering_{d0}_{d}_{m}.xlsx"))
-df_metric = pd.read_excel("output/save_metric.xlsx")
-folder_path = PATH_DATA_ALL + "/code_test"
-images, labels_true, folder_names = load_images_from_folder(folder_path)
+            df_list.append(pd.read_excel(f"{folder_path}/save_clustering_{d0}_{d}_{m}.xlsx"))
+df_metric = pd.read_excel(folder_path+"/save_metric.xlsx")
+images, labels_true, folder_names = load_images_from_folder(images_path)
 
 if "Unnamed: 0" in df_metric.columns:
     df_metric.drop(columns="Unnamed: 0", inplace=True)

@@ -5,7 +5,6 @@ import pandas as pd
 from features import *
 from clustering import *
 from utils import *
-from constant import PATH_OUTPUT, MODEL_CLUSTERING
 
 from sklearn.preprocessing import StandardScaler
 import os
@@ -16,7 +15,6 @@ import plotly.express as px
 from features import *
 from clustering import *
 from utils import *
-from constant import  PATH_OUTPUT, MODEL_CLUSTERING, PATH_DATA, PATH_DATA_ALL
 
 from sklearn.cluster import KMeans
 
@@ -42,6 +40,14 @@ from sklearn.metrics import accuracy_score, silhouette_score, adjusted_mutual_in
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.cluster import MeanShift, estimate_bandwidth, KMeans
 from sklearn.neural_network import BernoulliRBM
+import argparse
+
+# Parse command line arguments for data path
+parser = argparse.ArgumentParser(description='Run a clustering dashboard')
+parser.add_argument('--path_data', type=str, help='chemin_vers_les_donnée')
+parser.add_argument("--path_output", type=str, required=True, help="chemin_vers_le_dossier_output")
+folder_path = parser.parse_args().path_data
+PATH_OUTPUT = parser.parse_args().path_output
 
 
 descsTitle0 = ["RGB", "HSV"]
@@ -52,7 +58,6 @@ def pipeline():
 
     scaler = StandardScaler()
     # Example usage:
-    folder_path = PATH_DATA_ALL + "/code_test"
     images, labels_true, folder_names = load_images_from_folder(folder_path)
     taille = len(images)
     nombre_de_canaux = 3
